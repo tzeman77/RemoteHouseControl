@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 public class ZaluzieFragment extends Fragment {
 	
+  /*
 	  private List<String> mDataSourceList = new ArrayList<String>();  
 	  private List<FragmentTransaction> mBackStackList = new ArrayList<FragmentTransaction>();  
 	   
@@ -77,6 +78,7 @@ public class ZaluzieFragment extends Fragment {
 	        });  
 	           
 	    }  
+*/
 	       
 	    /** 
 	     *  
