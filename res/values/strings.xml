@@ -23,4 +23,9 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
 
+    <string name="settings_saved">Settings saved.</string>
+
+    <string name="btn_Save">Save</string>
+    <string name="btn_Cancel">Cancel</string>
+
 </resources>
