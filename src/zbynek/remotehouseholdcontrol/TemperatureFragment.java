@@ -1,49 +1,41 @@
 package zbynek.remotehouseholdcontrol;
 
-
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-
 import zbynek.remotehouseholdcontrol.nettools.ConnectionCredentialsManager;
 import zbynek.remotehouseholdcontrol.nettools.StatusesXmlParser;
-import zbynek.remotehouseholdcontrol.nettools.DownloadValuesFromServer;
 import zbynek.remotehouseholdcontrol.nettools.UrlReader;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.view.Gravity;
+import android.support.v4.util.SimpleArrayMap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SimpleAdapter;
+import android.widget.TableLayout;
 import android.widget.TextView;
-import android.widget.SimpleAdapter;
-
 
 public class TemperatureFragment extends Fragment {
 
 	private static final String XML_STATES_FILE = "stavsenzoru.xml";
-	
-	private TextView textView; 
-	
+
+	private TableLayout table;
+	private LayoutInflater inflater;
+
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		
-		textView = new TextView(getActivity());
-		textView.setGravity(Gravity.CENTER);
-		return textView;
+	public View onCreateView(LayoutInflater i, ViewGroup container,
+	  Bundle savedInstanceState) {
+	  View v = i.inflate(R.layout.table, container, false);
+	  table = (TableLayout)v.findViewById(R.id.table);
+	  inflater = i;
+	  return v;
 	}
-	
+
 	@Override
 	public void onResume() {
 		super.onResume();
-
 		displayActualState();
 	}
 
@@ -53,47 +45,45 @@ public class TemperatureFragment extends Fragment {
 	}
 
 	private String constructUrl() {
-		ConnectionCredentialsManager cm = new ConnectionCredentialsManager(getActivity());
+		ConnectionCredentialsManager cm = new ConnectionCredentialsManager(
+		  getActivity());
 		return cm.constructUrl(XML_STATES_FILE);
 	}
 
-	
-	private class DownloadStatesTask extends AsyncTask<String, Void, String> {
+	private class DownloadStatesTask extends
+	  AsyncTask<String, Void, SimpleArrayMap<String, String>> {
 
 		@Override
-		protected String doInBackground(String... args) {
+		protected SimpleArrayMap<String, String> doInBackground(String... args) {
 			String url = args[0];
-
 			try {
-				ConnectionCredentialsManager cm = new ConnectionCredentialsManager(getActivity());
+				ConnectionCredentialsManager cm = new ConnectionCredentialsManager(
+				 getActivity());
 				String xml = UrlReader.readOutputFromUrl(cm, url);
-				LinkedHashMap<String, String> statuses = StatusesXmlParser.parseStatusesFromXml(xml);
-				return formatOutput(statuses);
+				return StatusesXmlParser.parseXml(xml);
 			} catch (IOException e) {
-				return "Neprectu XML.\n Check you internet connection and settings.";
-
+			  SimpleArrayMap<String, String> m = new SimpleArrayMap<String, String>();
+			  m.put("Error", "Neprectu XML.\n Zkontrolujte pripojeni a nastaveni.");
+			  return m;
 			} catch (XmlPullParserException e) {
-				return "An error occured while parsing the answer from server.";
+			  SimpleArrayMap<String, String> m = new SimpleArrayMap<String, String>();
+			  m.put("Error", "Chyba pri parsovani odpovedi serveru.");
+			  return m;
 			}
-		}
-
-		private String formatOutput(LinkedHashMap<String, String> statuses) {
-			StringBuilder sb = new StringBuilder();
-			for (Entry<String, String> entry : statuses.entrySet()) {
-				sb.append(entry.getKey());
-				sb.append(" : ");
-				sb.append(entry.getValue());
-				sb.append("\n");
-			}
-			return sb.toString();
 		}
 
 		@Override
-		protected void onPostExecute(String result) {
-			textView.setText(result);
-			textView.setTextColor(-16711681);
-			textView.setBackgroundColor(-7829368);
-			textView.setTextSize(15);
+		protected void onPostExecute(SimpleArrayMap<String, String> m) {
+		  for (int i = 0; i < m.size(); i++) {
+		    View r = inflater.inflate(R.layout.table_row_kv, null); 
+		    ((TextView)r.findViewById(R.id.row_key)).setText(m.keyAt(i));
+		    ((TextView)r.findViewById(R.id.row_val)).setText(m.valueAt(i));
+		    table.addView(r);
+		  }
+
+			//table.setTextColor(-16711681);
+			table.setBackgroundColor(-7829368);
+			//table.setTextSize(15);
 		}
 
 
